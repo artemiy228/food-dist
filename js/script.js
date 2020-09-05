@@ -92,7 +92,7 @@ window.addEventListener("DOMContentLoaded", () => {
   function openModal() {
     modal.style.display = "block";
     document.body.style.overflow = "hidden";
-    clearInterval(modalTimerId); // Если пользователь сам открыл окно до его автоматического открытия
+    clearTimeout(modalTimerId); // Если пользователь сам открыл окно до его автоматического открытия
   }
 
   function closeModal() {
@@ -135,7 +135,15 @@ window.addEventListener("DOMContentLoaded", () => {
   // Menu food
 
   class MenuCard {
-    constructor(src, alt, title, description, price, parentSelector) {
+    constructor(
+      src,
+      alt,
+      title,
+      description,
+      price,
+      parentSelector,
+      ...classes
+    ) {
       this.src = src;
       this.alt = alt;
       this.title = title;
@@ -143,6 +151,7 @@ window.addEventListener("DOMContentLoaded", () => {
       this.price = price;
       this.transfer = 27;
       this.parent = document.querySelector(parentSelector);
+      this.classes = classes;
       this.changeToUAH();
     }
 
@@ -151,7 +160,13 @@ window.addEventListener("DOMContentLoaded", () => {
     }
     render() {
       const element = document.createElement("div");
-      element.classList.add("menu__item");
+      if (this.classes.length === 0) {
+        this.element = "menu__item";
+      } else {
+        this.classes.forEach((className) => {
+          element.classList.add(className);
+        });
+      }
       element.innerHTML = `
 		<img src=${this.src} alt=${this.alt}>
 			<h3 class="menu__item-subtitle">${this.title}"</h3>
@@ -172,6 +187,43 @@ window.addEventListener("DOMContentLoaded", () => {
     "Меню 'Фитнес'",
     "это новый подход к приготовлению блюд: больше свежих овощей и фруктов. Продукт активных и здоровых людей. Это абсолютно новый продукт с оптимальной ценой и высоким качеством!",
     9,
-    ".menu .container"
+    ".menu .container",
+    "menu__item"
   ).render();
+
+
+  // Forms
+
+  const message = {
+    loading: 'Loading...',
+    success: 'Success!',
+    failed: 'Error. Try later'
+  }
+  const forms = document.querySelectorAll('form');
+
+  forms.forEach(item => {
+    postData(item);
+  })
+
+  function postData(form) {
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const statusMessage = document.createElement('div')
+      statusMessage.textContent = message.loading
+      statusMessage.append(form);
+      const request = new XMLHttpRequest();
+      request.open('POST', 'server.php');
+      request.setRequestHeader('Content-type', 'multipart/form-data');
+      const formData = new FormData(form);
+      request.send(formData);
+      request.addEventListener('load', (e) => {
+        if (request.status === 200) {
+          statusMessage.textContent = message.success;
+        } else {
+          statusMessage.textContent = message.failed;
+          console.log('Error in post');
+        }
+      })
+    })
+  }
 });
