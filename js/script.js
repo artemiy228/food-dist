@@ -100,7 +100,7 @@ window.addEventListener("DOMContentLoaded", () => {
     document.body.style.overflow = "";
   }
 
-  const modalTimerId = setTimeout(openModal, 10000); // 10sec
+  // const modalTimerId = setTimeout(openModal, 10000); // 10sec
 
   modalTrigger.forEach((btn) => {
     btn.addEventListener("click", () => {
@@ -195,9 +195,9 @@ window.addEventListener("DOMContentLoaded", () => {
   // Forms
 
   const message = {
-    loading: 'Loading...',
-    success: 'Success!',
-    failed: 'Error. Try later'
+    loading: 'Загрузка...',
+    success: 'Спасибо! Скоро мы с вами свяжемся!',
+    failure: 'Что-то пошло не так...'
   }
   const forms = document.querySelectorAll('form');
 
@@ -208,22 +208,37 @@ window.addEventListener("DOMContentLoaded", () => {
   function postData(form) {
     form.addEventListener('submit', (e) => {
       e.preventDefault();
-      const statusMessage = document.createElement('div')
-      statusMessage.textContent = message.loading
-      statusMessage.append(form);
+
+      let statusMessage = document.createElement('div');
+      statusMessage.classList.add('status');
+      statusMessage.textContent = message.loading;
+      form.appendChild(statusMessage);
+
       const request = new XMLHttpRequest();
       request.open('POST', 'server.php');
-      request.setRequestHeader('Content-type', 'multipart/form-data');
+      request.setRequestHeader('Content-type', 'application/json; charset=utf-8');
       const formData = new FormData(form);
-      request.send(formData);
-      request.addEventListener('load', (e) => {
+
+      const object = {};
+      formData.forEach(function (value, key) {
+        object[key] = value;
+      });
+      const json = JSON.stringify(object);
+
+      request.send(json);
+
+      request.addEventListener('load', () => {
         if (request.status === 200) {
+          console.log(request.response);
           statusMessage.textContent = message.success;
+          form.reset();
+          setTimeout(() => {
+            statusMessage.remove();
+          }, 2000);
         } else {
-          statusMessage.textContent = message.failed;
-          console.log('Error in post');
+          statusMessage.textContent = message.failure;
         }
-      })
-    })
+      });
+    });
   }
 });
