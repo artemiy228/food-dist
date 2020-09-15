@@ -34,7 +34,11 @@ window.addEventListener("DOMContentLoaded", () => {
   });
 
   // Clock
+<<<<<<< HEAD
+  const deadLine = "2020-10-20";
+=======
   const deadLine = "2020-20-03";
+>>>>>>> fbae73f9515babc01b34e11cd051ef6339915922
 
   function getTimeRemining(endtime) {
     const t = Date.parse(endtime) - Date.parse(new Date()),
@@ -178,16 +182,26 @@ window.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  new MenuCard(
-    "img/tabs/vegy.jpg",
-    "vegy",
-    "Меню 'Фитнес'",
-    "это новый подход к приготовлению блюд: больше свежих овощей и фруктов. Продукт активных и здоровых людей. Это абсолютно новый продукт с оптимальной ценой и высоким качеством!",
-    9,
-    ".menu .container",
-    "menu__item"
-  ).render();
+  const getResourse = async (url) => {
+    const res = await fetch(url)
+    if (!res.ok) {
+      throw new Error(`Could noe fetch ${url}, status: ${res.status}`);
+    }
+    return await res.json();
+  }
 
+  getResourse('http://localhost:3000/menu')
+    .then(data => {
+      data.forEach(({
+        img,
+        altimg,
+        title,
+        descr,
+        price
+      }) => {
+        new MenuCard(img, altimg, title, descr, price, ".menu .container", "menu__item").render();
+      })
+    })
 
   // Forms
 
@@ -199,10 +213,21 @@ window.addEventListener("DOMContentLoaded", () => {
   const forms = document.querySelectorAll('form');
 
   forms.forEach(item => {
-    postData(item);
+    bindPostData(item);
   })
 
-  function postData(form) {
+  const postData = async (url, data) => {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-type': 'application/json'
+      },
+      body: data
+    })
+    return await res.json();
+  }
+
+  function bindPostData(form) {
     form.addEventListener('submit', (e) => {
       e.preventDefault();
 
@@ -215,6 +240,149 @@ window.addEventListener("DOMContentLoaded", () => {
       form.insertAdjacentElement('afterend', statusMessage)
 
       const formData = new FormData(form);
+<<<<<<< HEAD
+      const json = JSON.stringify(Object.fromEntries(formData.entries()));
+
+      postData('http://localhost:3000/requests', json)
+        .then(data => {
+          console.log(data);
+          showThanksModal(message.success)
+          statusMessage.remove();
+        })
+        .catch(() => {
+          showThanksModal(message.failure)
+        })
+        .finally(() => {
+          form.reset();
+        })
+    });
+  }
+
+  // thanks modal
+
+  function showThanksModal(message) {
+    const prevModalDialog = document.querySelector('.modal__dialog');
+    prevModalDialog.style.display = 'none';
+    openModal();
+    const thanksModal = document.createElement('div');
+    thanksModal.classList.add('modal__dialog');
+    thanksModal.innerHTML = `
+    <div class="modal__content">
+      <div class="modal__close" data-close>×</div>
+      <div class="modal__title">${message}</div>
+    </div>
+    `;
+    document.querySelector('.modal').append(thanksModal);
+    setTimeout(() => {
+      thanksModal.remove();
+      prevModalDialog.style.display = 'block';
+      closeModal();
+    }, 4000)
+  }
+
+  fetch('db.json')
+    .then(data => data.json())
+    .then(res => console.log(res))
+
+
+  // Slider
+
+  let offset = 0;
+  let slideIndex = 1;
+
+  const slides = document.querySelectorAll('.offer__slide'),
+    prev = document.querySelector('.offer__slider-prev'),
+    next = document.querySelector('.offer__slider-next'),
+    total = document.querySelector('#total'),
+    current = document.querySelector('#current'),
+    slidesWrapper = document.querySelector('.offer__slider-wrapper'),
+    width = window.getComputedStyle(slidesWrapper).width,
+    slidesField = document.querySelector('.offer__slider-inner');
+
+  if (slides.length < 10) {
+    total.textContent = `0${slides.length}`;
+    current.textContent = `0${slideIndex}`;
+  } else {
+    total.textContent = slides.length;
+    current.textContent = slideIndex;
+  }
+
+  slidesField.style.width = 100 * slides.length + '%';
+  slidesField.style.display = 'flex';
+  slidesField.style.transition = '0.5s all';
+
+  slidesWrapper.style.overflow = 'hidden';
+
+  slides.forEach(slide => {
+    slide.style.width = width;
+  });
+
+  next.addEventListener('click', () => {
+    if (offset == (+width.slice(0, width.length - 2) * (slides.length - 1))) {
+      offset = 0;
+    } else {
+      offset += +width.slice(0, width.length - 2);
+    }
+
+    slidesField.style.transform = `translateX(-${offset}px)`;
+
+    if (slideIndex == slides.length) {
+      slideIndex = 1;
+    } else {
+      slideIndex++;
+    }
+
+    if (slides.length < 10) {
+      current.textContent = `0${slideIndex}`;
+    } else {
+      current.textContent = slideIndex;
+    }
+  });
+
+  prev.addEventListener('click', () => {
+    if (offset == 0) {
+      offset = +width.slice(0, width.length - 2) * (slides.length - 1);
+    } else {
+      offset -= +width.slice(0, width.length - 2);
+    }
+
+    slidesField.style.transform = `translateX(-${offset}px)`;
+
+    if (slideIndex == 1) {
+      slideIndex = slides.length;
+    } else {
+      slideIndex--;
+    }
+
+    if (slides.length < 10) {
+      current.textContent = `0${slideIndex}`;
+    } else {
+      current.textContent = slideIndex;
+    }
+  });
+  // showSlides(slideIndex);
+
+  // function showSlides(n) {
+  //   if (n > slides.length) {
+  //     slideIndex = 1;
+  //   }
+  //   if (n < 1) {
+  //     slideIndex = slides.length;
+  //   }
+  //   slides.forEach(item => item.style.display = 'none');
+  //   slides[slideIndex - 1].style.display = 'block';
+  // }
+
+  // function plusSlides(n) {
+  //   showSlides(slideIndex += n)
+  // }
+  // prev.addEventListener('click', () => {
+  //   plusSlides(-1)
+  // })
+  // next.addEventListener('click', () => {
+  //   plusSlides(1)
+  // })
+=======
       const object = {};
       formData.forEach(function (value, key) {
         object[key] = value;
@@ -263,4 +431,5 @@ window.addEventListener("DOMContentLoaded", () => {
       closeModal();
     }, 4000)
   }
+>>>>>>> fbae73f9515babc01b34e11cd051ef6339915922
 });
